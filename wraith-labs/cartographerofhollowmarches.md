@@ -1,6 +1,5 @@
 # The Cartographer of Hollow Marches
 
-## Overview
 
 **Category:** Data Exfiltration
 **Difficulty:** Intermediate
