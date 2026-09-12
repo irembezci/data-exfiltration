@@ -615,3 +615,9 @@ Side-Channel Inference
 ```
 
 A successful attack does not necessarily require obtaining the entire hidden dataset. Partial disclosure can already provide valuable information about the application's architecture, security controls, business logic or sensitive data. When testing an LLM application, it is therefore important to test both **different data targets** and **different extraction techniques** rather than relying on a single extraction prompt.
+
+## Disclaimer
+
+This repository is intended for **educational and authorized security testing purposes only**. The techniques and examples documented here were performed in controlled security labs and are provided to help understand LLM security vulnerabilities and data exfiltration techniques.
+
+Do not use these techniques against systems, applications or data without explicit authorization. Unauthorized testing or data access may be illegal and can cause harm.
