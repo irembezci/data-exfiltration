@@ -615,8 +615,3 @@ Side-Channel Inference
 ```
 
 A successful attack does not necessarily require obtaining the entire hidden dataset. Partial disclosure can already provide valuable information about the application's architecture, security controls, business logic or sensitive data. When testing an LLM application, it is therefore important to test both **different data targets** and **different extraction techniques** rather than relying on a single extraction prompt.
-
-```
-
-Bence bu dosya için başlık **`Data Exfiltration Techniques`** olarak kalmalı. Sonrasında her labda `Target` ve `Technique` belirterek hangi tekniğin nerede kullanıldığını göstermek çok temiz bir metodoloji oluşturur.
-```
